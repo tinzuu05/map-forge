@@ -4,6 +4,12 @@ Map Forge is an open-source browser toolkit for converting 2D floor plans into a
 
 > Status: `v0.1.0-alpha`. This project is useful for prototypes, indoor maps, IoT/camera/sensor visualization, and digital-twin demos. It does not guarantee perfect BIM/CAD reconstruction from arbitrary JPG images.
 
+## v0.1.3 update
+
+- Added drag-and-drop upload for floor plan images.
+- Added a Neon blueprint / dark thin lines preset for thin cyan linework on dark backgrounds.
+- Tuned HUD preset and default line coverage thresholds for anti-aliased thin lines.
+
 ## Clean install note
 
 This release does not include `node_modules`, `.npmrc`, or `package-lock.json`.

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type DragEvent, type KeyboardEvent, type ReactNode } from "react";
 import type { MapPoint, MapProject, MapShape } from "../types";
 import { demoProject } from "../data/demoProject";
 import { safeJsonParse } from "../utils/download";
@@ -26,7 +26,7 @@ const defaultDetectOptions: LineDetectionOptions = {
   mode: "auto",
   adaptiveContrast: 28,
   edgeStrength: 42,
-  minCellCoverage: 0.08,
+  minCellCoverage: 0.05,
   dilate: 1,
   preferLowSaturation: true,
   ignoreDarkBackground: true,
@@ -38,13 +38,13 @@ const defaultDetectOptions: LineDetectionOptions = {
   cropMargin: 0,
   useSourceColors: false,
   enhanceLinesBeforeDetect: true,
-  localContrastThreshold: 18,
-  colorDifferenceThreshold: 34,
+  localContrastThreshold: 16,
+  colorDifferenceThreshold: 28,
   backgroundSampleRadius: 12,
   contrastBoost: 1.35,
 };
 
-type PresetId = "general" | "blueprint" | "hud" | "light" | "dark" | "cad";
+type PresetId = "general" | "blueprint" | "hud" | "neon" | "light" | "dark" | "cad";
 
 const detectionPresets: Record<PresetId, Partial<LineDetectionOptions>> = {
   general: defaultDetectOptions,
@@ -66,19 +66,42 @@ const detectionPresets: Record<PresetId, Partial<LineDetectionOptions>> = {
   },
   hud: {
     mode: "light",
-    threshold: 120,
-    localContrastThreshold: 12,
-    colorDifferenceThreshold: 22,
-    backgroundSampleRadius: 16,
-    contrastBoost: 1.75,
-    edgeStrength: 32,
-    minCellCoverage: 0.04,
+    threshold: 105,
+    gridSize: 3,
+    maxImageSide: 1900,
+    localContrastThreshold: 8,
+    colorDifferenceThreshold: 18,
+    backgroundSampleRadius: 14,
+    contrastBoost: 2.05,
+    edgeStrength: 18,
+    minCellCoverage: 0.018,
+    minComponentPixels: 1,
     preferLowSaturation: false,
     ignoreDarkBackground: false,
     minNeighbourBrightness: 0,
-    dilate: 1,
+    dilate: 2,
     color: "#7cffd4",
     borderColor: "#d7fff2",
+  },
+  neon: {
+    mode: "auto",
+    threshold: 90,
+    gridSize: 2,
+    maxImageSide: 2100,
+    localContrastThreshold: 6,
+    colorDifferenceThreshold: 14,
+    backgroundSampleRadius: 10,
+    contrastBoost: 2.35,
+    edgeStrength: 12,
+    minCellCoverage: 0.01,
+    minComponentPixels: 1,
+    preferLowSaturation: false,
+    ignoreDarkBackground: false,
+    minNeighbourBrightness: 0,
+    dilate: 2,
+    maxShapes: 12000,
+    color: "#66e3ff",
+    borderColor: "#d7fbff",
   },
   light: {
     mode: "dark",
@@ -88,7 +111,7 @@ const detectionPresets: Record<PresetId, Partial<LineDetectionOptions>> = {
     backgroundSampleRadius: 12,
     contrastBoost: 1.3,
     edgeStrength: 45,
-    minCellCoverage: 0.08,
+    minCellCoverage: 0.05,
     preferLowSaturation: false,
     ignoreDarkBackground: false,
     minNeighbourBrightness: 0,
@@ -273,6 +296,7 @@ export default function LeftPanel({ project, setProject, language }: Props) {
   const [imageInputKey, setImageInputKey] = useState(0);
   const [jsonInputKey, setJsonInputKey] = useState(0);
   const [jsonFileName, setJsonFileName] = useState<string | null>(null);
+  const [isImageDragOver, setIsImageDragOver] = useState(false);
   const lastObjectUrl = useRef<string | null>(null);
   const imageFileInputRef = useRef<HTMLInputElement | null>(null);
   const jsonFileInputRef = useRef<HTMLInputElement | null>(null);
@@ -350,9 +374,12 @@ export default function LeftPanel({ project, setProject, language }: Props) {
     }));
   };
 
-  const onImageUpload = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const handleImageFile = (file: File) => {
+    const isSupportedImage = file.type.startsWith("image/") || /\.(svg|png|jpe?g|webp|gif)$/i.test(file.name);
+    if (!isSupportedImage) {
+      alert(t("imageOnly"));
+      return;
+    }
     if (lastObjectUrl.current) URL.revokeObjectURL(lastObjectUrl.current);
     const url = URL.createObjectURL(file);
     lastObjectUrl.current = url;
@@ -366,7 +393,41 @@ export default function LeftPanel({ project, setProject, language }: Props) {
         imageHeight: img.naturalHeight || current.imageHeight,
       }));
     };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      if (lastObjectUrl.current === url) lastObjectUrl.current = null;
+      alert(t("detectFail"));
+    };
     img.src = url;
+  };
+
+  const onImageUpload = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    handleImageFile(file);
+  };
+
+  const onImageDragOver = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsImageDragOver(true);
+  };
+
+  const onImageDragLeave = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.currentTarget.contains(event.relatedTarget as Node | null)) return;
+    setIsImageDragOver(false);
+  };
+
+  const onImageDrop = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsImageDragOver(false);
+    const file = event.dataTransfer.files?.[0];
+    if (!file) return;
+    handleImageFile(file);
+    event.dataTransfer.clearData();
   };
 
   const removeUploadedImage = () => {
@@ -463,7 +524,7 @@ export default function LeftPanel({ project, setProject, language }: Props) {
         </div>
 
         <label>{t("uploadPlan")}</label>
-        <div className="file-upload-box">
+        <div className={`file-upload-box drop-zone ${isImageDragOver ? "is-drag-over" : ""}`} onDragOver={onImageDragOver} onDragLeave={onImageDragLeave} onDrop={onImageDrop}>
           <input
             ref={imageFileInputRef}
             key={imageInputKey}
@@ -473,7 +534,8 @@ export default function LeftPanel({ project, setProject, language }: Props) {
             onChange={onImageUpload}
           />
           <div className="upload-status compact">
-            <small>{project.imageName || t("noImage")}</small>
+            <small title={project.imageName || t("noImage")}>{project.imageName || t("noImage")}</small>
+            <span className="drop-zone-hint">{t("dropImageHint")}</span>
             <div className="upload-actions">
               <button className="ghost" type="button" onClick={() => imageFileInputRef.current?.click()}>
                 {project.imageUrl ? t("uploadAnother") : t("chooseFile")}
@@ -511,6 +573,7 @@ export default function LeftPanel({ project, setProject, language }: Props) {
             <option value="general">{t("presetGeneral")}</option>
             <option value="blueprint">{t("presetBlueprint")}</option>
             <option value="hud">{t("presetHud")}</option>
+            <option value="neon">{t("presetNeon")}</option>
             <option value="light">{t("presetLight")}</option>
             <option value="dark">{t("presetDark")}</option>
             <option value="cad">{t("presetCad")}</option>
