@@ -1,0 +1,30 @@
+{
+  "name": "map-forge",
+  "version": "0.1.2",
+  "private": true,
+  "description": "Open-source 2D floor plan to 3D map toolkit and Studio app.",
+  "license": "MIT",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "examples/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev:studio",
+    "dev:studio": "npm --workspace apps/studio run dev",
+    "build": "npm run build:packages && npm --workspace apps/studio run build",
+    "build:packages": "npm --workspace packages/core run build && npm --workspace packages/three run build && npm --workspace packages/leaflet run build && npm --workspace packages/react run build",
+    "typecheck": "npm --workspace packages/core run typecheck && npm --workspace packages/three run typecheck && npm --workspace packages/leaflet run typecheck && npm --workspace packages/react run typecheck && npm --workspace apps/studio run build",
+    "install:clean": "npm install --registry=https://registry.npmjs.org/ --no-audit --no-fund"
+  },
+  "keywords": [
+    "threejs",
+    "leaflet",
+    "floorplan",
+    "3d-map",
+    "digital-twin",
+    "webgl",
+    "map-forge"
+  ]
+}

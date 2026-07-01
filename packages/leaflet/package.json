@@ -1,0 +1,23 @@
+{
+  "name": "@map-forge/leaflet",
+  "version": "0.1.0",
+  "description": "Map Forge leaflet package.",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@map-forge/core": "file:../core"
+  },
+  "peerDependencies": {
+    "leaflet": ">=1.9.0"
+  }
+}

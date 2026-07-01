@@ -1,0 +1,27 @@
+{
+  "name": "@map-forge/react",
+  "version": "0.1.0",
+  "description": "Map Forge react package.",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@map-forge/core": "file:../core",
+    "@map-forge/three": "file:../three",
+    "@map-forge/leaflet": "file:../leaflet"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "three": ">=0.160.0",
+    "leaflet": ">=1.9.0"
+  }
+}

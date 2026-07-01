@@ -1,0 +1,44 @@
+{
+  "name": "@map-forge/studio",
+  "version": "0.1.2",
+  "description": "Map Forge Studio web app: convert 2D floor plans into approximate 3D wall models with Three.js export and Leaflet-compatible points.",
+  "license": "MIT",
+  "type": "module",
+  "keywords": [
+    "threejs",
+    "leaflet",
+    "floorplan",
+    "3d-map",
+    "vite",
+    "react",
+    "typescript"
+  ],
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^5.4.12",
+    "typescript": "^5.6.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "three": "^0.171.0",
+    "leaflet": "^1.9.4",
+    "@map-forge/core": "file:../../packages/core",
+    "@map-forge/three": "file:../../packages/three",
+    "@map-forge/leaflet": "file:../../packages/leaflet",
+    "@map-forge/react": "file:../../packages/react"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@types/three": "^0.171.0",
+    "@types/leaflet": "^1.9.16"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "private": true
+}

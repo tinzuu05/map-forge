@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MapForge Three.js Export Demo with Popup</title>
+    <link rel="stylesheet" href="./style.css" />
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+
+  <body>
+    <header class="app-header">
+      <div>
+        <h1>MapForge Three.js Export Demo with Point Popup</h1>
+        <p>把 MapForge 右側 Copy Full 的 mapProject 貼到 <code>src/mapProject.js</code>，滑鼠移到點位會顯示資訊。</p>
+      </div>
+      <button id="resetCameraBtn">重設視角</button>
+    </header>
+
+    <main class="layout">
+      <section class="viewer-card">
+        <div id="viewer">
+          <div id="pointPopup" class="point-popup" hidden></div>
+        </div>
+      </section>
+
+      <aside class="side-panel">
+        <h2>使用方式</h2>
+        <ol>
+          <li>在 MapForge 右側按 <code>Copy Full</code>。</li>
+          <li>打開 <code>src/mapProject.js</code>。</li>
+          <li>用你的 <code>export const mapProject = {...}</code> 覆蓋原本內容。</li>
+          <li>用本機伺服器開啟。</li>
+        </ol>
+
+        <h2>本機啟動</h2>
+        <pre><code>cd MapForge-Export-HTML-CSS-JS-Popup
+python3 -m http.server 5173</code></pre>
+        <p>然後打開 <code>http://localhost:5173</code></p>
+
+        <h2>Popup 欄位</h2>
+        <p>點位支援：</p>
+        <pre><code>{
+  id: "pt-1",
+  name: "Camera 01",
+  type: "camera",
+  x: 800,
+  y: 180,
+  z: 72,
+  color: "#ffcc66",
+  description: "入口攝影機",
+  status: "online",
+  floor: "1F"
+}</code></pre>
+
+        <h2>操作</h2>
+        <ul>
+          <li>滑鼠左鍵拖曳：旋轉</li>
+          <li>滾輪：縮放</li>
+          <li>右鍵拖曳：平移</li>
+          <li>滑鼠移到點位球體：顯示 Popup</li>
+        </ul>
+      </aside>
+    </main>
+
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
