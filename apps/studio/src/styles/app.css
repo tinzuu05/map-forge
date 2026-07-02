@@ -1044,3 +1044,627 @@ body { min-width: 0; overflow-x: hidden; }
 .file-upload-box.drop-zone.is-drag-over .drop-zone-hint {
   color: #b8fbff;
 }
+
+/* v0.1.4 selected wall editing + connected merge */
+.selected-wall-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(102, 227, 255, 0.22);
+  border-radius: 14px;
+  background: rgba(8, 47, 73, 0.18);
+}
+
+.selected-wall-summary strong {
+  color: #e0faff;
+  font-size: 13px;
+}
+
+.selected-wall-summary small,
+.selected-wall-card small {
+  color: rgba(188, 212, 234, 0.68);
+  word-break: break-all;
+}
+
+.selected-wall-batch {
+  margin-bottom: 12px;
+}
+
+.selected-wall-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.selected-wall-card {
+  border-color: rgba(250, 204, 21, 0.28);
+  background: linear-gradient(180deg, rgba(250, 204, 21, 0.07), rgba(15, 23, 42, 0.82));
+}
+
+.selected-wall-card-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.icon-text-button {
+  min-width: 34px;
+  min-height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #e2e8f0;
+  font-size: 22px;
+  line-height: 1;
+  box-shadow: none;
+}
+
+.icon-text-button:hover {
+  background: rgba(148, 163, 184, 0.12);
+  color: #ffffff;
+}
+
+
+/* v0.1.6 center preview header RWD fix
+   Keeps the top-right preview controls inside the middle panel on tablet/mobile. */
+.workspace-title-block {
+  min-width: 0;
+  flex: 1 1 240px;
+}
+
+.workspace-actions {
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+.selected-wall-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.selected-wall-actions button {
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.view-segmented {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+.view-segmented button {
+  min-width: 0;
+  white-space: nowrap;
+}
+
+@media (max-width: 1280px) {
+  .workspace-header {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch !important;
+  }
+
+  .workspace-actions {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+    justify-content: stretch !important;
+    gap: 10px;
+  }
+
+  .selected-wall-actions {
+    justify-content: stretch;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(108px, 1fr));
+    width: 100%;
+  }
+
+  .selected-wall-actions button {
+    width: 100%;
+  }
+
+  .view-segmented {
+    width: 100%;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .workspace-header {
+    gap: 10px !important;
+  }
+
+  .workspace-title-block h2,
+  .workspace-title-block p {
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+  }
+
+  .selected-wall-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .view-segmented {
+    border-radius: 14px;
+  }
+
+  .view-segmented button {
+    white-space: normal;
+    line-height: 1.25;
+    padding-inline: 8px;
+  }
+}
+
+@media (max-width: 390px) {
+  .view-segmented {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* v0.1.7 responsive panel/layout fix
+   - The preview title no longer truncates on responsive widths.
+   - The right export panel moves below the preview before it gets squeezed.
+   - Long form selects stack label/input vertically so text does not collide.
+*/
+.workspace-title-block h2,
+.workspace-title-block p {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  overflow-wrap: anywhere;
+}
+
+.workspace-header {
+  min-height: 84px;
+}
+
+.workspace-actions {
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
+.selected-wall-actions,
+.view-segmented {
+  max-width: 100%;
+}
+
+.selected-wall-actions button,
+.view-segmented button {
+  max-width: 100%;
+}
+
+/* Avoid left-panel form rows being compressed when English labels/options are long. */
+.grid-two {
+  grid-template-columns: 1fr !important;
+}
+
+.grid-two label {
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.grid-two input,
+.grid-two select,
+.grid-two textarea {
+  min-width: 0;
+  width: 100%;
+}
+
+.grid-two select,
+select {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Middle-size screens: keep settings on the left, put export under preview.
+   This prevents the right code panel from cutting into the 3D canvas. */
+@media (max-width: 1480px) and (min-width: 1181px) {
+  .app-shell {
+    display: grid !important;
+    grid-template-columns: minmax(320px, 380px) minmax(0, 1fr) !important;
+    grid-template-rows: minmax(0, 1fr) minmax(340px, 42vh) !important;
+    height: 100vh !important;
+    min-height: 0;
+    overflow: hidden !important;
+  }
+
+  .left-panel {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    border-right: 1px solid var(--line);
+    border-bottom: 0;
+    max-height: 100vh;
+    overflow: auto;
+  }
+
+  .workspace {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+    min-height: 0;
+    height: auto !important;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .right-panel {
+    grid-column: 2;
+    grid-row: 2;
+    min-width: 0;
+    min-height: 0;
+    max-height: none;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+    overflow: hidden;
+  }
+
+  .right-language-bar,
+  .export-header {
+    position: relative !important;
+    top: auto !important;
+  }
+
+  .code-preview {
+    min-height: 0;
+    max-height: none;
+    height: 100%;
+  }
+
+  .workspace-header {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch !important;
+    gap: 10px;
+  }
+
+  .workspace-actions {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+  }
+
+  .selected-wall-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+    justify-content: stretch;
+    width: 100%;
+  }
+
+  .selected-wall-actions button {
+    width: 100%;
+  }
+
+  .view-segmented {
+    width: 100%;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    border-radius: 14px;
+  }
+}
+
+@media (max-width: 1180px) {
+  .workspace-title-block h2,
+  .workspace-title-block p {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+  }
+}
+
+
+/* v0.1.8 workspace header overflow fix
+   The previous layout used a fixed 84px header row. On responsive widths,
+   selected-wall buttons wrapped into a second line but were clipped by that
+   fixed row height. This patch makes the header auto-sized and keeps the
+   preview canvas below it. */
+.workspace {
+  grid-template-rows: auto minmax(0, 1fr) !important;
+}
+
+.workspace-header {
+  min-height: 0 !important;
+  height: auto !important;
+  overflow: visible !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  align-content: start;
+  align-items: stretch;
+}
+
+.workspace-title-block {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.workspace-title-block h2,
+.workspace-title-block p {
+  max-width: 100%;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+
+.workspace-actions {
+  width: 100%;
+  min-width: 0;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  align-items: stretch;
+  justify-content: stretch !important;
+}
+
+.selected-wall-actions {
+  width: 100%;
+  min-width: 0;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+  align-items: stretch;
+}
+
+.selected-wall-actions button {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  white-space: normal;
+  line-height: 1.25;
+  padding-inline: 10px;
+}
+
+.view-segmented {
+  width: 100%;
+  max-width: 360px;
+  justify-self: end;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.view-segmented button {
+  min-width: 0;
+  white-space: normal;
+  line-height: 1.25;
+}
+
+.preview-stage {
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* When the center panel becomes narrow, place the preview mode switch below
+   selected-wall actions and make it full width. */
+@media (max-width: 1480px) {
+  .view-segmented {
+    max-width: none;
+    justify-self: stretch;
+  }
+}
+
+@media (max-width: 760px) {
+  .workspace-header {
+    padding: 12px !important;
+  }
+
+  .selected-wall-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .view-segmented {
+    grid-template-columns: 1fr;
+    border-radius: 16px;
+  }
+}
+
+
+/* v0.1.9 compact preview header
+   v0.1.8 fixed clipping by making the header auto-height. This version keeps
+   that behavior only when selected wall actions exist. When nothing is selected,
+   the header becomes compact again. */
+.workspace-header.no-selection {
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 16px !important;
+  align-items: center !important;
+  padding-block: 12px !important;
+}
+
+.workspace-header.no-selection .workspace-actions {
+  width: auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+}
+
+.workspace-header.no-selection .view-segmented {
+  width: auto !important;
+  min-width: 236px;
+  max-width: 280px !important;
+  justify-self: end !important;
+}
+
+.workspace-header.has-selection {
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 12px !important;
+  align-items: stretch !important;
+  padding-block: 14px !important;
+}
+
+.workspace-header.has-selection .workspace-actions {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px !important;
+  align-items: stretch !important;
+}
+
+.workspace-header.has-selection .view-segmented {
+  width: 100% !important;
+  max-width: none !important;
+  justify-self: stretch !important;
+}
+
+@media (max-width: 1280px) {
+  .workspace-header.no-selection {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .workspace-header.no-selection .workspace-actions {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr);
+    justify-content: stretch !important;
+  }
+
+  .workspace-header.no-selection .view-segmented {
+    width: 100% !important;
+    min-width: 0;
+    max-width: none !important;
+    justify-self: stretch !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .workspace-header.no-selection,
+  .workspace-header.has-selection {
+    padding-block: 12px !important;
+  }
+}
+
+
+/* v0.1.10 stable preview switch
+   Keep 3D Preview / Flat Preview in a stable top-right position.
+   Selected-wall actions expand below the title row instead of pushing the
+   preview switch around. */
+.workspace {
+  grid-template-rows: auto minmax(0, 1fr) !important;
+}
+
+.workspace-header {
+  height: auto !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  grid-template-areas:
+    "title switch"
+    "actions actions" !important;
+  gap: 10px 16px !important;
+  align-items: center !important;
+  align-content: start !important;
+}
+
+.workspace-title-block {
+  grid-area: title;
+  min-width: 0;
+}
+
+.workspace-title-block h2,
+.workspace-title-block p {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  overflow-wrap: anywhere;
+}
+
+.workspace-view-switch {
+  grid-area: switch;
+  justify-self: end;
+  align-self: start;
+  min-width: 0;
+}
+
+.workspace-actions {
+  display: contents !important;
+}
+
+.view-segmented {
+  width: clamp(220px, 22vw, 340px) !important;
+  max-width: 100% !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.view-segmented button {
+  min-width: 0;
+  white-space: normal;
+  line-height: 1.2;
+}
+
+.selected-wall-actions {
+  grid-area: actions;
+  width: 100%;
+  min-width: 0;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px;
+  align-items: stretch;
+  margin-top: 2px;
+}
+
+.selected-wall-actions button {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  white-space: normal;
+  line-height: 1.25;
+  padding-inline: 10px;
+}
+
+.workspace-header.no-selection {
+  grid-template-areas: "title switch" !important;
+  padding-block: 12px !important;
+}
+
+.workspace-header.has-selection {
+  grid-template-areas:
+    "title switch"
+    "actions actions" !important;
+  padding-block: 12px !important;
+}
+
+@media (max-width: 980px) {
+  .workspace-header,
+  .workspace-header.no-selection,
+  .workspace-header.has-selection {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-areas:
+      "title"
+      "switch"
+      "actions" !important;
+  }
+
+  .workspace-view-switch {
+    justify-self: stretch;
+    align-self: stretch;
+  }
+
+  .view-segmented {
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .selected-wall-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .view-segmented {
+    grid-template-columns: 1fr;
+  }
+}
+

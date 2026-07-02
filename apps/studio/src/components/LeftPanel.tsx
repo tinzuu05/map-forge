@@ -10,6 +10,9 @@ interface Props {
   project: MapProject;
   setProject: (updater: (current: MapProject) => MapProject) => void;
   language: Language;
+  selectedShapeIds: string[];
+  setSelectedShapeIds: (ids: string[]) => void;
+  onMergeSelectedWalls: () => void;
 }
 
 const newId = (prefix: string) => `${prefix}-${crypto.randomUUID().slice(0, 8)}`;
@@ -286,7 +289,153 @@ function PointEditor({ point, onCommit, onDelete, t }: PointEditorProps) {
   );
 }
 
-export default function LeftPanel({ project, setProject, language }: Props) {
+interface SelectedWallBatchEditorProps {
+  selectedShapes: MapShape[];
+  defaultHeight: number;
+  defaultColor: string;
+  onApplyHeight: (height: number) => void;
+  onApplyColor: (color: string) => void;
+  onMerge: () => void;
+  onDeselect: () => void;
+  t: (key: LabelKey) => string;
+}
+
+function SelectedWallBatchEditor({ selectedShapes, defaultHeight, defaultColor, onApplyHeight, onApplyColor, onMerge, onDeselect, t }: SelectedWallBatchEditorProps) {
+  const [heightDraft, setHeightDraft] = useState(String(selectedShapes[0]?.height ?? defaultHeight));
+  const [colorDraft, setColorDraft] = useState(selectedShapes[0]?.color ?? defaultColor);
+
+  useEffect(() => {
+    setHeightDraft(String(selectedShapes[0]?.height ?? defaultHeight));
+    setColorDraft(selectedShapes[0]?.color ?? defaultColor);
+  }, [selectedShapes.map((shape) => `${shape.id}:${shape.height}:${shape.color}`).join("|"), defaultHeight, defaultColor]);
+
+  const applyHeight = () => {
+    const value = Number(heightDraft);
+    if (!Number.isFinite(value) || value <= 0) {
+      alert(t("validHeight"));
+      return;
+    }
+    onApplyHeight(value);
+  };
+
+  const onHeightKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") applyHeight();
+    if (event.key === "Escape") setHeightDraft(String(selectedShapes[0]?.height ?? defaultHeight));
+  };
+
+  return (
+    <div className="grid-two selected-wall-batch">
+      <label className="primary-span">{t("groupHeight")}</label>
+      <input
+        className="primary-span"
+        type="number"
+        min={1}
+        max={2000}
+        value={heightDraft}
+        onChange={(event) => setHeightDraft(event.target.value)}
+        onKeyDown={onHeightKeyDown}
+      />
+      <button type="button" onClick={applyHeight}>{t("applyGroupHeight")}</button>
+      <button type="button" disabled={selectedShapes.length < 2} onClick={onMerge}>{t("mergeAsPolygon")}</button>
+      <label className="primary-span">{t("groupColor")}</label>
+      <input className="primary-span" type="color" value={colorDraft} onChange={(event) => setColorDraft(event.target.value)} />
+      <button type="button" onClick={() => onApplyColor(colorDraft)}>{t("applyGroupColor")}</button>
+      <button type="button" onClick={onDeselect}>{t("deselect")}</button>
+      <small className="primary-span">{t("batchHeightHint")}</small>
+    </div>
+  );
+}
+
+interface SelectedWallEditorProps {
+  shape: MapShape;
+  onCommit: (id: string, patch: Partial<MapShape>) => void;
+  onRemoveFromSelection: (id: string) => void;
+  onDelete: (id: string) => void;
+  t: (key: LabelKey) => string;
+}
+
+function SelectedWallEditor({ shape, onCommit, onRemoveFromSelection, onDelete, t }: SelectedWallEditorProps) {
+  const [draft, setDraft] = useState({
+    name: shape.name,
+    height: String(shape.height),
+    color: shape.color,
+    opacity: String(shape.opacity),
+  });
+  const [dirty, setDirty] = useState(false);
+
+  useEffect(() => {
+    setDraft({
+      name: shape.name,
+      height: String(shape.height),
+      color: shape.color,
+      opacity: String(shape.opacity),
+    });
+    setDirty(false);
+  }, [shape.id, shape.name, shape.height, shape.color, shape.opacity]);
+
+  const setValue = (key: keyof typeof draft, value: string) => {
+    setDraft((current) => ({ ...current, [key]: value }));
+    setDirty(true);
+  };
+
+  const commit = () => {
+    const height = Number(draft.height);
+    const opacity = Number(draft.opacity);
+    if (!Number.isFinite(height) || height <= 0) {
+      alert(t("validHeight"));
+      return;
+    }
+    if (!Number.isFinite(opacity) || opacity <= 0 || opacity > 1) {
+      alert(t("validOpacity"));
+      return;
+    }
+    onCommit(shape.id, {
+      name: draft.name.trim() || shape.name,
+      height,
+      color: draft.color,
+      opacity,
+    });
+    setDirty(false);
+  };
+
+  const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      event.currentTarget.blur();
+      commit();
+    }
+    if (event.key === "Escape") {
+      setDraft({
+        name: shape.name,
+        height: String(shape.height),
+        color: shape.color,
+        opacity: String(shape.opacity),
+      });
+      setDirty(false);
+    }
+  };
+
+  return (
+    <div className="card selected-wall-card" key={shape.id}>
+      <div className="selected-wall-card-header">
+        <input value={draft.name} onChange={(event) => setValue("name", event.target.value)} onKeyDown={onKeyDown} onBlur={commit} />
+        <button type="button" className="icon-text-button" onClick={() => onRemoveFromSelection(shape.id)}>×</button>
+      </div>
+      <small title={shape.id}>{shape.id}</small>
+      <div className="mini-grid">
+        <label>{t("height")}<input type="number" min={1} max={2000} value={draft.height} onChange={(event) => setValue("height", event.target.value)} onKeyDown={onKeyDown} /></label>
+        <label>{t("color")}<input type="color" value={draft.color} onChange={(event) => setValue("color", event.target.value)} /></label>
+        <label>{t("opacity")}<input type="number" step={0.05} min={0.1} max={1} value={draft.opacity} onChange={(event) => setValue("opacity", event.target.value)} onKeyDown={onKeyDown} /></label>
+      </div>
+      <div className="button-row">
+        <button type="button" disabled={!dirty} onClick={commit}>{t("applyWallChanges")}</button>
+        <button type="button" className="danger" onClick={() => onDelete(shape.id)}>{t("deleteArea")}</button>
+      </div>
+      {dirty && <small>{t("wallEditingHint")}</small>}
+    </div>
+  );
+}
+
+export default function LeftPanel({ project, setProject, language, selectedShapeIds, setSelectedShapeIds, onMergeSelectedWalls }: Props) {
   const t = makeTranslator(language);
   const [detecting, setDetecting] = useState(false);
   const [detectOptions, setDetectOptions] = useState<LineDetectionOptions>(defaultDetectOptions);
@@ -482,6 +631,25 @@ export default function LeftPanel({ project, setProject, language }: Props) {
   const normalizedPointQuery = pointQuery.trim().toLowerCase();
   const autoWallCount = project.shapes.filter((shape) => shape.id.startsWith("auto-wall-")).length;
 
+  const selectedShapes = useMemo(() => {
+    const selected = new Set(selectedShapeIds);
+    return project.shapes.filter((shape) => selected.has(shape.id));
+  }, [project.shapes, selectedShapeIds]);
+
+  const deleteSelectedShape = (id: string) => {
+    setProject((current) => ({ ...current, shapes: current.shapes.filter((shape) => shape.id !== id) }));
+    setSelectedShapeIds(selectedShapeIds.filter((shapeId) => shapeId !== id));
+  };
+
+  const updateSelectedShapes = (patch: Partial<MapShape>) => {
+    if (!selectedShapeIds.length) return;
+    const selected = new Set(selectedShapeIds);
+    setProject((current) => ({
+      ...current,
+      shapes: current.shapes.map((shape) => (selected.has(shape.id) ? { ...shape, ...patch } : shape)),
+    }));
+  };
+
   const visibleShapes = useMemo(() => {
     return project.shapes
       .filter((shape) => !shape.id.startsWith("auto-wall-") || project.shapes.length <= 80)
@@ -622,6 +790,41 @@ export default function LeftPanel({ project, setProject, language }: Props) {
           <label className="primary-span"><input type="checkbox" checked={project.settings.showGrid} onChange={(e) => updateSettings("showGrid", e.target.checked)} /> {t("showGrid")}</label>
           <label className="primary-span"><input type="checkbox" checked={project.settings.showImagePlane} onChange={(e) => updateSettings("showImagePlane", e.target.checked)} /> {t("showImage")}</label>
         </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title={t("selectedWallSettings")} defaultOpen={selectedShapes.length > 0}>
+        {selectedShapes.length === 0 ? (
+          <small>{t("selectedWallsHint")}</small>
+        ) : (
+          <>
+            <div className="selected-wall-summary">
+              <strong>{selectedShapes.length} {t("walls")}</strong>
+              <small>{t("selectedWallsBatchHint")}</small>
+            </div>
+            <SelectedWallBatchEditor
+              selectedShapes={selectedShapes}
+              defaultHeight={detectOptions.height}
+              defaultColor={detectOptions.color}
+              onApplyHeight={(height) => updateSelectedShapes({ height })}
+              onApplyColor={(color) => updateSelectedShapes({ color })}
+              onMerge={onMergeSelectedWalls}
+              onDeselect={() => setSelectedShapeIds([])}
+              t={t}
+            />
+            <div className="selected-wall-list">
+              {selectedShapes.map((shape) => (
+                <SelectedWallEditor
+                  key={shape.id}
+                  shape={shape}
+                  t={t}
+                  onCommit={updateShape}
+                  onRemoveFromSelection={(id) => setSelectedShapeIds(selectedShapeIds.filter((shapeId) => shapeId !== id))}
+                  onDelete={deleteSelectedShape}
+                />
+              ))}
+            </div>
+          </>
+        )}
       </CollapsibleSection>
 
       <CollapsibleSection title={t("areas")}>

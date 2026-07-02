@@ -4,11 +4,30 @@ Map Forge is an open-source browser toolkit for converting 2D floor plans into a
 
 > Status: `v0.1.0-alpha`. This project is useful for prototypes, indoor maps, IoT/camera/sensor visualization, and digital-twin demos. It does not guarantee perfect BIM/CAD reconstruction from arbitrary JPG images.
 
+## v0.1.4
+
+Added selected wall editing and connected wall merge:
+
+- Select generated 3D walls in the 3D or flat preview.
+- Edit selected walls individually after generation, including wall height, color, and opacity.
+- Batch-edit selected wall height and color.
+- Merge multiple selected walls into one wall only when the selected walls are connected.
+- Non-connected selected walls are blocked from merging.
+
+
 ## v0.1.3 update
 
 - Added drag-and-drop upload for floor plan images.
 - Added a Neon blueprint / dark thin lines preset for thin cyan linework on dark backgrounds.
 - Tuned HUD preset and default line coverage thresholds for anti-aliased thin lines.
+
+
+## v0.1.5 update
+
+- Merged selected connected walls now become an orthogonal polygon outline instead of a single bounding rectangle.
+- Selected wall height/color editing now uses draft inputs and Apply buttons to avoid preview lag while typing.
+- Added group height editing for multi-selected walls.
+- Merge is still restricted to connected wall blocks.
 
 ## Clean install note
 
@@ -130,3 +149,43 @@ If you previously installed an older version and saw `EUNSUPPORTEDPROTOCOL works
 rm -rf node_modules package-lock.json
 npm install
 ```
+
+
+## v0.1.6
+
+- Fixed responsive layout overflow in the center preview header.
+- Grouped selected-wall actions separately from the preview switcher.
+- Improved tablet/mobile wrapping for the top-right controls in the preview area.
+
+## v0.1.7
+
+- Fixed responsive preview header overflow.
+- Prevented project title text from being truncated in the middle preview panel.
+- Moved the code export panel below preview on medium-width screens to avoid cutting/squeezing the 3D canvas.
+- Improved long select/control layout in the left settings panel.
+
+
+## Changelog
+
+
+### v0.1.10
+
+- Kept the `3D Preview / Flat Preview` switch in a stable top-right header position.
+- Moved selected-wall actions into a separate responsive row below the title row.
+- Reduced header movement when selecting and deselecting walls.
+
+
+
+### v0.1.9
+
+- Fixed the preview header taking too much vertical space when no wall is selected.
+- Added compact and expanded preview header states.
+- The header stays compact by default and only expands when selected wall actions are visible.
+
+
+
+### v0.1.8
+
+- Fixed responsive overflow in the center preview header.
+- Removed fixed preview header row height so selected-wall actions no longer get clipped.
+- Improved selected-wall action wrapping on tablet and narrow desktop widths.
