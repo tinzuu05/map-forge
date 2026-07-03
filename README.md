@@ -168,6 +168,32 @@ npm install
 ## Changelog
 
 
+### v0.1.19
+
+- Added selected-wall geometry editing for X/Y position, width/depth, height, fill color, border color, and opacity.
+- Added drag-to-move wall editing in Flat Preview: select a wall, then drag it to reposition it visually.
+- Drag moves preserve polygon/box geometry and are saved into undo/redo history after mouse release.
+
+
+
+### v0.1.18
+
+- Renamed the project import label to "Import project JSON" / "匯入專案 JSON".
+- Added drag-and-drop support for importing `.mapforge.json` / JSON project files.
+- Improved the Project action button layout so demo/save/reset actions no longer feel cramped.
+- Fixed Selected Wall batch labels such as Group Height and Group Color so they stay horizontal.
+
+
+
+### v0.1.17
+
+- Added Save Project for downloading a `.mapforge.json` project file to the user's computer.
+- Improved Import Project so saved project files can be loaded later to continue editing.
+- Newly uploaded floor-plan images are stored as data URLs, so saved project JSON can include the image, walls, points, and scene settings together.
+- Added a project-file utility for validating and reading both new Map Forge project payloads and older raw project JSON files.
+
+
+
 ### v0.1.16.1
 
 - Fixed `RightPanel` crash caused by missing `deferredExportProject` declaration.

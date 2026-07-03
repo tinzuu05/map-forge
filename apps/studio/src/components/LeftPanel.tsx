@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ChangeEvent, type DragEvent,
 import type { MapPoint, MapProject, MapShape } from "../types";
 import { demoProject } from "../data/demoProject";
 import { safeJsonParse } from "../utils/download";
+import { downloadProjectFile, readProjectFile } from "../utils/projectFile";
 import { detectLineShapesFromImage, type LineDetectionOptions } from "../utils/lineDetection";
 import type { LabelKey, Language } from "../i18n";
 import { makeTranslator } from "../i18n";
@@ -324,26 +325,100 @@ function SelectedWallBatchEditor({ selectedShapes, defaultHeight, defaultColor, 
   };
 
   return (
-    <div className="grid-two selected-wall-batch">
-      <label className="primary-span">{t("groupHeight")}</label>
-      <input
-        className="primary-span"
-        type="number"
-        min={1}
-        max={2000}
-        value={heightDraft}
-        onChange={(event) => setHeightDraft(event.target.value)}
-        onKeyDown={onHeightKeyDown}
-      />
-      <button type="button" onClick={applyHeight}>{t("applyGroupHeight")}</button>
-      <button type="button" disabled={selectedShapes.length < 2} onClick={onMerge}>{t("mergeAsPolygon")}</button>
-      <label className="primary-span">{t("groupColor")}</label>
-      <input className="primary-span" type="color" value={colorDraft} onChange={(event) => setColorDraft(event.target.value)} />
-      <button type="button" onClick={() => onApplyColor(colorDraft)}>{t("applyGroupColor")}</button>
-      <button type="button" onClick={onDeselect}>{t("deselect")}</button>
-      <small className="primary-span">{t("batchHeightHint")}</small>
+    <div className="selected-wall-batch">
+      <div className="selected-wall-batch-row">
+        <label className="selected-wall-batch-label">{t("groupHeight")}</label>
+        <input
+          className="selected-wall-batch-input"
+          type="number"
+          min={1}
+          max={2000}
+          value={heightDraft}
+          onChange={(event) => setHeightDraft(event.target.value)}
+          onKeyDown={onHeightKeyDown}
+        />
+        <button type="button" onClick={applyHeight}>{t("applyGroupHeight")}</button>
+      </div>
+
+      <div className="selected-wall-batch-row">
+        <label className="selected-wall-batch-label">{t("groupColor")}</label>
+        <input className="selected-wall-batch-color" type="color" value={colorDraft} onChange={(event) => setColorDraft(event.target.value)} />
+        <button type="button" onClick={() => onApplyColor(colorDraft)}>{t("applyGroupColor")}</button>
+      </div>
+
+      <div className="selected-wall-batch-actions">
+        <button type="button" disabled={selectedShapes.length < 2} onClick={onMerge}>{t("mergeAsPolygon")}</button>
+        <button type="button" onClick={onDeselect}>{t("deselect")}</button>
+      </div>
+
+      <small>{t("batchHeightHint")}</small>
     </div>
   );
+
+}
+
+function getShapeBounds(shape: MapShape) {
+  if (shape.box) {
+    return {
+      x: shape.box.x,
+      y: shape.box.y,
+      width: shape.box.width,
+      depth: shape.box.height,
+    };
+  }
+
+  const xs = shape.points.map(([x]) => x);
+  const ys = shape.points.map(([, y]) => y);
+  const minX = Math.min(...xs);
+  const minY = Math.min(...ys);
+  const maxX = Math.max(...xs);
+  const maxY = Math.max(...ys);
+
+  return {
+    x: minX,
+    y: minY,
+    width: maxX - minX,
+    depth: maxY - minY,
+  };
+}
+
+function resizeShapeToBounds(shape: MapShape, bounds: { x: number; y: number; width: number; depth: number }): MapShape {
+  const nextWidth = Math.max(1, bounds.width);
+  const nextDepth = Math.max(1, bounds.depth);
+
+  if (shape.box) {
+    const box = {
+      x: bounds.x,
+      y: bounds.y,
+      width: nextWidth,
+      height: nextDepth,
+    };
+
+    return {
+      ...shape,
+      box,
+      points: [
+        [box.x, box.y],
+        [box.x + box.width, box.y],
+        [box.x + box.width, box.y + box.height],
+        [box.x, box.y + box.height],
+      ],
+    };
+  }
+
+  const current = getShapeBounds(shape);
+  const scaleX = current.width ? nextWidth / current.width : 1;
+  const scaleY = current.depth ? nextDepth / current.depth : 1;
+  const transformPoint = ([x, y]: [number, number]): [number, number] => [
+    Number((bounds.x + (x - current.x) * scaleX).toFixed(3)),
+    Number((bounds.y + (y - current.y) * scaleY).toFixed(3)),
+  ];
+
+  return {
+    ...shape,
+    points: shape.points.map(transformPoint),
+    holes: shape.holes?.map((hole) => hole.map(transformPoint)),
+  };
 }
 
 interface SelectedWallEditorProps {
@@ -355,23 +430,35 @@ interface SelectedWallEditorProps {
 }
 
 function SelectedWallEditor({ shape, onCommit, onRemoveFromSelection, onDelete, t }: SelectedWallEditorProps) {
+  const shapeBounds = getShapeBounds(shape);
   const [draft, setDraft] = useState({
     name: shape.name,
+    x: String(Number(shapeBounds.x.toFixed(3))),
+    y: String(Number(shapeBounds.y.toFixed(3))),
+    width: String(Number(shapeBounds.width.toFixed(3))),
+    depth: String(Number(shapeBounds.depth.toFixed(3))),
     height: String(shape.height),
     color: shape.color,
+    borderColor: shape.borderColor,
     opacity: String(shape.opacity),
   });
   const [dirty, setDirty] = useState(false);
 
   useEffect(() => {
+    const nextBounds = getShapeBounds(shape);
     setDraft({
       name: shape.name,
+      x: String(Number(nextBounds.x.toFixed(3))),
+      y: String(Number(nextBounds.y.toFixed(3))),
+      width: String(Number(nextBounds.width.toFixed(3))),
+      depth: String(Number(nextBounds.depth.toFixed(3))),
       height: String(shape.height),
       color: shape.color,
+      borderColor: shape.borderColor,
       opacity: String(shape.opacity),
     });
     setDirty(false);
-  }, [shape.id, shape.name, shape.height, shape.color, shape.opacity]);
+  }, [shape.id, shape.name, shape.height, shape.color, shape.borderColor, shape.opacity, shape.box, shape.points, shape.holes]);
 
   const setValue = (key: keyof typeof draft, value: string) => {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -379,21 +466,60 @@ function SelectedWallEditor({ shape, onCommit, onRemoveFromSelection, onDelete, 
   };
 
   const commit = () => {
+    const x = Number(draft.x);
+    const y = Number(draft.y);
+    const width = Number(draft.width);
+    const depth = Number(draft.depth);
     const height = Number(draft.height);
     const opacity = Number(draft.opacity);
-    if (!Number.isFinite(height) || height <= 0) {
+
+    if (![x, y, width, depth, height, opacity].every(Number.isFinite)) {
+      alert(t("validWallGeometry"));
+      return;
+    }
+
+    if (width <= 0 || depth <= 0) {
+      alert(t("validWallSize"));
+      return;
+    }
+
+    if (height <= 0) {
       alert(t("validHeight"));
       return;
     }
-    if (!Number.isFinite(opacity) || opacity <= 0 || opacity > 1) {
+
+    if (opacity <= 0 || opacity > 1) {
       alert(t("validOpacity"));
       return;
     }
+
+    const resizedShape = resizeShapeToBounds(shape, { x, y, width, depth });
+
     onCommit(shape.id, {
       name: draft.name.trim() || shape.name,
       height,
       color: draft.color,
+      borderColor: draft.borderColor,
       opacity,
+      points: resizedShape.points,
+      holes: resizedShape.holes,
+      box: resizedShape.box,
+    });
+    setDirty(false);
+  };
+
+  const resetDraft = () => {
+    const nextBounds = getShapeBounds(shape);
+    setDraft({
+      name: shape.name,
+      x: String(Number(nextBounds.x.toFixed(3))),
+      y: String(Number(nextBounds.y.toFixed(3))),
+      width: String(Number(nextBounds.width.toFixed(3))),
+      depth: String(Number(nextBounds.depth.toFixed(3))),
+      height: String(shape.height),
+      color: shape.color,
+      borderColor: shape.borderColor,
+      opacity: String(shape.opacity),
     });
     setDirty(false);
   };
@@ -404,13 +530,7 @@ function SelectedWallEditor({ shape, onCommit, onRemoveFromSelection, onDelete, 
       commit();
     }
     if (event.key === "Escape") {
-      setDraft({
-        name: shape.name,
-        height: String(shape.height),
-        color: shape.color,
-        opacity: String(shape.opacity),
-      });
-      setDirty(false);
+      resetDraft();
     }
   };
 
@@ -421,11 +541,18 @@ function SelectedWallEditor({ shape, onCommit, onRemoveFromSelection, onDelete, 
         <button type="button" className="icon-text-button" onClick={() => onRemoveFromSelection(shape.id)}>×</button>
       </div>
       <small title={shape.id}>{shape.id}</small>
-      <div className="mini-grid">
+
+      <div className="selected-wall-geometry-grid">
+        <label>{t("positionX")}<input type="number" step={1} value={draft.x} onChange={(event) => setValue("x", event.target.value)} onKeyDown={onKeyDown} /></label>
+        <label>{t("positionY")}<input type="number" step={1} value={draft.y} onChange={(event) => setValue("y", event.target.value)} onKeyDown={onKeyDown} /></label>
+        <label>{t("wallWidth")}<input type="number" step={1} min={1} value={draft.width} onChange={(event) => setValue("width", event.target.value)} onKeyDown={onKeyDown} /></label>
+        <label>{t("wallDepth")}<input type="number" step={1} min={1} value={draft.depth} onChange={(event) => setValue("depth", event.target.value)} onKeyDown={onKeyDown} /></label>
         <label>{t("height")}<input type="number" min={1} max={2000} value={draft.height} onChange={(event) => setValue("height", event.target.value)} onKeyDown={onKeyDown} /></label>
-        <label>{t("color")}<input type="color" value={draft.color} onChange={(event) => setValue("color", event.target.value)} /></label>
         <label>{t("opacity")}<input type="number" step={0.05} min={0.1} max={1} value={draft.opacity} onChange={(event) => setValue("opacity", event.target.value)} onKeyDown={onKeyDown} /></label>
+        <label>{t("color")}<input type="color" value={draft.color} onChange={(event) => setValue("color", event.target.value)} /></label>
+        <label>{t("borderColor")}<input type="color" value={draft.borderColor} onChange={(event) => setValue("borderColor", event.target.value)} /></label>
       </div>
+
       <div className="button-row">
         <button type="button" disabled={!dirty} onClick={commit}>{t("applyWallChanges")}</button>
         <button type="button" className="danger" onClick={() => onDelete(shape.id)}>{t("deleteArea")}</button>
@@ -445,7 +572,9 @@ export default function LeftPanel({ project, setProject, language, selectedShape
   const [imageInputKey, setImageInputKey] = useState(0);
   const [jsonInputKey, setJsonInputKey] = useState(0);
   const [jsonFileName, setJsonFileName] = useState<string | null>(null);
+  const [savingProject, setSavingProject] = useState(false);
   const [isImageDragOver, setIsImageDragOver] = useState(false);
+  const [isJsonDragOver, setIsJsonDragOver] = useState(false);
   const lastObjectUrl = useRef<string | null>(null);
   const imageFileInputRef = useRef<HTMLInputElement | null>(null);
   const jsonFileInputRef = useRef<HTMLInputElement | null>(null);
@@ -523,34 +652,38 @@ export default function LeftPanel({ project, setProject, language, selectedShape
     }));
   };
 
-  const handleImageFile = (file: File) => {
-    const isSupportedImage = file.type.startsWith("image/") || /\.(svg|png|jpe?g|webp|gif)$/i.test(file.name);
-    if (!isSupportedImage) {
-      alert(t("imageOnly"));
-      return;
-    }
-    if (lastObjectUrl.current) URL.revokeObjectURL(lastObjectUrl.current);
-    const url = URL.createObjectURL(file);
-    lastObjectUrl.current = url;
+
+const handleImageFile = (file: File) => {
+  const isSupportedImage = file.type.startsWith("image/") || /\.(svg|png|jpe?g|webp|gif)$/i.test(file.name);
+  if (!isSupportedImage) {
+    alert(t("imageOnly"));
+    return;
+  }
+
+  if (lastObjectUrl.current) URL.revokeObjectURL(lastObjectUrl.current);
+  lastObjectUrl.current = null;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    const dataUrl = String(reader.result);
     const img = new Image();
     img.onload = () => {
       setProject((current) => ({
         ...current,
-        imageUrl: url,
+        imageUrl: dataUrl,
         imageName: file.name,
         imageWidth: img.naturalWidth || current.imageWidth,
         imageHeight: img.naturalHeight || current.imageHeight,
       }));
     };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      if (lastObjectUrl.current === url) lastObjectUrl.current = null;
-      alert(t("detectFail"));
-    };
-    img.src = url;
+    img.onerror = () => alert(t("detectFail"));
+    img.src = dataUrl;
   };
+  reader.onerror = () => alert(t("detectFail"));
+  reader.readAsDataURL(file);
+};
 
-  const onImageUpload = (event: ChangeEvent<HTMLInputElement>) => {
+const onImageUpload = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
     handleImageFile(file);
@@ -587,20 +720,66 @@ export default function LeftPanel({ project, setProject, language, selectedShape
     setProject((current) => ({ ...current, imageUrl: null, imageName: null }));
   };
 
-  const importProject = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    setJsonFileName(file.name);
-    file.text().then((text) => {
-      const parsed = safeJsonParse<MapProject>(text);
-      if (parsed) {
-        setProject(() => ({ ...parsed, imageUrl: null, imageName: null }));
-        setJsonInputKey((value) => value + 1);
-      } else alert(t("jsonError"));
-    });
-  };
 
-  const clearImageInput = () => {
+const saveProject = async () => {
+  setSavingProject(true);
+  try {
+    await downloadProjectFile(project);
+  } catch (error) {
+    console.error(error);
+    alert(t("saveProjectFail"));
+  } finally {
+    setSavingProject(false);
+  }
+};
+
+const handleProjectFile = (file: File) => {
+  setJsonFileName(file.name);
+  readProjectFile(file).then((parsed) => {
+    if (parsed) {
+      if (lastObjectUrl.current) URL.revokeObjectURL(lastObjectUrl.current);
+      lastObjectUrl.current = null;
+      setProject(() => parsed);
+      setSelectedShapeIds([]);
+      setJsonInputKey((value) => value + 1);
+    } else alert(t("jsonError"));
+  }).catch((error) => {
+    console.error(error);
+    alert(t("jsonError"));
+  });
+};
+
+const importProject = (event: ChangeEvent<HTMLInputElement>) => {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  handleProjectFile(file);
+};
+
+const onProjectJsonDragOver = (event: DragEvent<HTMLDivElement>) => {
+  event.preventDefault();
+  event.stopPropagation();
+  setIsJsonDragOver(true);
+};
+
+const onProjectJsonDragLeave = (event: DragEvent<HTMLDivElement>) => {
+  event.preventDefault();
+  event.stopPropagation();
+  if (event.currentTarget.contains(event.relatedTarget as Node | null)) return;
+  setIsJsonDragOver(false);
+};
+
+const onProjectJsonDrop = (event: DragEvent<HTMLDivElement>) => {
+  event.preventDefault();
+  event.stopPropagation();
+  setIsJsonDragOver(false);
+
+  const file = event.dataTransfer.files?.[0];
+  if (!file) return;
+  handleProjectFile(file);
+  event.dataTransfer.clearData();
+};
+
+const clearImageInput = () => {
     if (lastObjectUrl.current) URL.revokeObjectURL(lastObjectUrl.current);
     lastObjectUrl.current = null;
     if (imageFileInputRef.current) imageFileInputRef.current.value = "";
@@ -680,10 +859,14 @@ export default function LeftPanel({ project, setProject, language, selectedShape
         <label>{t("projectName")}</label>
         <input value={project.projectName} onChange={(e) => setProject((c) => ({ ...c, projectName: e.target.value }))} />
 
-        <div className="project-action-grid">
+        <div className="project-action-grid project-action-grid-three project-action-grid-balanced">
           <button className="project-action-card primary-card" type="button" onClick={loadDemo}>
             <span>{t("loadDemo")}</span>
             <small>{t("loadDemoHint")}</small>
+          </button>
+          <button className="project-action-card save-card" type="button" disabled={savingProject} onClick={saveProject}>
+            <span>{savingProject ? t("savingProject") : t("saveProject")}</span>
+            <small>{t("saveProjectHint")}</small>
           </button>
           <button className="project-action-card reset-card" type="button" onClick={resetProject}>
             <span>{t("resetProject")}</span>
@@ -714,17 +897,23 @@ export default function LeftPanel({ project, setProject, language, selectedShape
         </div>
 
         <label>{t("importJson")}</label>
-        <div className="file-upload-box file-upload-box-json">
+        <div
+          className={`file-upload-box file-upload-box-json drop-zone project-json-drop-zone ${isJsonDragOver ? "is-drag-over" : ""}`}
+          onDragOver={onProjectJsonDragOver}
+          onDragLeave={onProjectJsonDragLeave}
+          onDrop={onProjectJsonDrop}
+        >
           <input
             ref={jsonFileInputRef}
             key={jsonInputKey}
             className="visually-hidden-file"
             type="file"
-            accept="application/json"
+            accept="application/json,.json,.mapforge.json"
             onChange={importProject}
           />
           <div className="upload-status compact">
             <small title={jsonFileName || t("noFileSelected")}>{jsonFileName || t("noFileSelected")}</small>
+            <span className="drop-zone-hint">{t("dropProjectJsonHint")}</span>
             <div className="upload-actions">
               <button className="ghost" type="button" onClick={() => jsonFileInputRef.current?.click()}>
                 {t("chooseFile")}
@@ -732,6 +921,7 @@ export default function LeftPanel({ project, setProject, language, selectedShape
             </div>
           </div>
         </div>
+        <small className="project-file-hint">{t("projectFileHint")}</small>
       </CollapsibleSection>
 
       <CollapsibleSection title={t("autoTitle")}>

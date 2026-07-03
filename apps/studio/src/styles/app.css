@@ -2023,3 +2023,201 @@ select {
   contain: content;
 }
 
+
+/* v0.1.17 project save/import controls */
+.project-action-grid-three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.save-card {
+  border-color: rgba(52, 211, 153, 0.34);
+  background: linear-gradient(180deg, rgba(16, 185, 129, 0.12), rgba(8, 15, 29, 0.78));
+}
+
+.save-card:hover:not(:disabled) {
+  border-color: rgba(52, 211, 153, 0.54);
+  box-shadow: 0 14px 34px rgba(16, 185, 129, 0.12);
+}
+
+.project-file-hint {
+  display: block;
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+@media (max-width: 1320px) {
+  .project-action-grid-three {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* v0.1.18 project import drag + project action + selected wall batch layout fix */
+.project-action-grid-balanced {
+  grid-template-columns: 1fr !important;
+  gap: 10px !important;
+  margin: 14px 0 18px;
+}
+
+.project-action-grid-balanced .project-action-card {
+  min-height: 0;
+  padding: 12px 13px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
+  text-align: left;
+}
+
+.project-action-grid-balanced .project-action-card span {
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.project-action-grid-balanced .project-action-card small {
+  line-height: 1.35;
+}
+
+@media (min-width: 430px) {
+  .project-action-grid-balanced {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .project-action-grid-balanced .save-card {
+    grid-column: 1 / -1;
+  }
+}
+
+.file-upload-box-json.drop-zone,
+.project-json-drop-zone {
+  cursor: default;
+}
+
+.project-json-drop-zone .drop-zone-hint {
+  color: rgba(188, 212, 234, 0.72);
+}
+
+.project-json-drop-zone.is-drag-over {
+  border-color: rgba(34, 211, 238, 0.72);
+  background: rgba(34, 211, 238, 0.09);
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.16), 0 18px 48px rgba(8, 145, 178, 0.12);
+}
+
+.selected-wall-batch {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 10px !important;
+  margin-bottom: 12px;
+  padding: 12px;
+  border: 1px solid rgba(250, 204, 21, 0.16);
+  border-radius: 16px;
+  background: rgba(250, 204, 21, 0.045);
+}
+
+.selected-wall-batch-row {
+  display: grid;
+  grid-template-columns: minmax(88px, 0.72fr) minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.selected-wall-batch-label {
+  display: block !important;
+  grid-column: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: var(--muted) !important;
+  font-size: 12px !important;
+  font-weight: 650;
+  line-height: 1.35;
+  white-space: nowrap !important;
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+}
+
+.selected-wall-batch-input,
+.selected-wall-batch-color {
+  width: 100%;
+  min-width: 0;
+}
+
+.selected-wall-batch-color {
+  min-height: 38px;
+  padding: 4px;
+}
+
+.selected-wall-batch-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+}
+
+.selected-wall-batch small {
+  color: rgba(188, 212, 234, 0.68);
+  line-height: 1.45;
+}
+
+@media (max-width: 430px) {
+  .selected-wall-batch-row,
+  .selected-wall-batch-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .selected-wall-batch-label {
+    white-space: normal !important;
+  }
+}
+
+
+/* v0.1.19 selected wall geometry + flat-preview drag move */
+.selected-wall-geometry-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.selected-wall-geometry-grid label {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 5px;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.35;
+  white-space: normal !important;
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+}
+
+.selected-wall-geometry-grid input {
+  width: 100%;
+  min-width: 0;
+}
+
+.selected-wall-geometry-grid input[type="color"] {
+  min-height: 36px;
+  padding: 4px;
+}
+
+.leaflet-preview.is-dragging-wall,
+.leaflet-preview.is-dragging-wall * {
+  cursor: grabbing !important;
+}
+
+.leaflet-interactive {
+  cursor: pointer;
+}
+
+.leaflet-preview.is-dragging-wall .leaflet-interactive {
+  transition: none !important;
+}
+
+@media (max-width: 430px) {
+  .selected-wall-geometry-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

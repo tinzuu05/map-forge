@@ -1,6 +1,6 @@
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { demoProject } from "./data/demoProject";
-import type { MapProject } from "./types";
+import type { MapProject, MapShape } from "./types";
 import LeftPanel from "./components/LeftPanel";
 import RightPanel from "./components/RightPanel";
 import ThreePreview from "./three/ThreePreview";
@@ -246,6 +246,34 @@ export default function App() {
     return { outer, holes };
   };
 
+  const moveShapeBy = (shape: MapShape, dx: number, dy: number): MapShape => {
+    const movePoint = ([x, y]: [number, number]): [number, number] => [
+      Number((x + dx).toFixed(3)),
+      Number((y + dy).toFixed(3)),
+    ];
+
+    return {
+      ...shape,
+      points: shape.points.map(movePoint),
+      holes: shape.holes?.map((hole) => hole.map(movePoint)),
+      box: shape.box
+        ? {
+            ...shape.box,
+            x: Number((shape.box.x + dx).toFixed(3)),
+            y: Number((shape.box.y + dy).toFixed(3)),
+          }
+        : shape.box,
+    };
+  };
+
+  const moveShape = (shapeId: string, dx: number, dy: number) => {
+    if (!Number.isFinite(dx) || !Number.isFinite(dy) || (Math.abs(dx) < 0.001 && Math.abs(dy) < 0.001)) return;
+    setProject((current) => ({
+      ...current,
+      shapes: current.shapes.map((shape) => (shape.id === shapeId ? moveShapeBy(shape, dx, dy) : shape)),
+    }));
+  };
+
   const mergeSelectedWalls = () => {
     const selected = project.shapes.filter((shape) => selectedShapeIds.includes(shape.id));
     if (selected.length < 2) {
@@ -372,7 +400,7 @@ export default function App() {
           {view === "three" ? (
             <ThreePreview project={previewProject} selectedShapeIds={selectedShapeIds} onSelectedShapeIdsChange={setSelectedShapeIds} language={language} />
           ) : (
-            <LeafletPreview project={previewProject} selectedShapeIds={selectedShapeIds} onSelectedShapeIdsChange={setSelectedShapeIds} />
+            <LeafletPreview project={previewProject} selectedShapeIds={selectedShapeIds} onSelectedShapeIdsChange={setSelectedShapeIds} onShapeMove={moveShape} />
           )}
         </div>
       </main>
