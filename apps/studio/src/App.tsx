@@ -8,8 +8,21 @@ import LeafletPreview from "./leaflet/LeafletPreview";
 import type { Language } from "./i18n";
 import { makeTranslator } from "./i18n";
 
+const MAX_HISTORY_LENGTH = 60;
+
 export default function App() {
-  const [project, setProjectState] = useState<MapProject>(demoProject);
+  const [projectHistory, setProjectHistory] = useState<{
+    past: MapProject[];
+    present: MapProject;
+    future: MapProject[];
+  }>(() => ({
+    past: [],
+    present: demoProject,
+    future: [],
+  }));
+  const project = projectHistory.present;
+  const canUndo = projectHistory.past.length > 0;
+  const canRedo = projectHistory.future.length > 0;
   const [view, setView] = useState<"three" | "leaflet">("three");
   const [selectedShapeIds, setSelectedShapeIds] = useState<string[]>([]);
   const [language, setLanguage] = useState<Language>(() => (localStorage.getItem("mapforge-language") as Language) || "zh-TW");
@@ -21,7 +34,42 @@ export default function App() {
   }, [language]);
 
   const setProject = (updater: (current: MapProject) => MapProject) => {
-    setProjectState((current) => updater(current));
+    setProjectHistory((current) => {
+      const nextProject = updater(current.present);
+      if (nextProject === current.present) return current;
+
+      return {
+        past: [...current.past, current.present].slice(-MAX_HISTORY_LENGTH),
+        present: nextProject,
+        future: [],
+      };
+    });
+  };
+
+  const undoProject = () => {
+    setProjectHistory((current) => {
+      if (!current.past.length) return current;
+      const previous = current.past[current.past.length - 1];
+
+      return {
+        past: current.past.slice(0, -1),
+        present: previous,
+        future: [current.present, ...current.future].slice(0, MAX_HISTORY_LENGTH),
+      };
+    });
+  };
+
+  const redoProject = () => {
+    setProjectHistory((current) => {
+      if (!current.future.length) return current;
+      const next = current.future[0];
+
+      return {
+        past: [...current.past, current.present].slice(-MAX_HISTORY_LENGTH),
+        present: next,
+        future: current.future.slice(1),
+      };
+    });
   };
 
   const getShapeBounds = (shape: MapProject["shapes"][number]) => {
@@ -216,7 +264,7 @@ export default function App() {
       box: undefined,
     };
 
-    setProjectState((current) => ({
+    setProject((current) => ({
       ...current,
       shapes: [
         ...current.shapes.filter((shape) => !selectedShapeIds.includes(shape.id)),
@@ -228,7 +276,7 @@ export default function App() {
 
   const deleteSelectedWalls = () => {
     if (!selectedShapeIds.length) return;
-    setProjectState((current) => ({
+    setProject((current) => ({
       ...current,
       shapes: current.shapes.filter((shape) => !selectedShapeIds.includes(shape.id)),
     }));
@@ -238,6 +286,25 @@ export default function App() {
   useEffect(() => {
     setSelectedShapeIds((ids) => ids.filter((id) => project.shapes.some((shape) => shape.id === id)));
   }, [project.shapes]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      const active = document.activeElement;
+      const isTyping = active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement || active instanceof HTMLSelectElement;
+      if (isTyping) return;
+
+      const isMac = navigator.platform.toLowerCase().includes("mac");
+      const modifierPressed = isMac ? event.metaKey : event.ctrlKey;
+      if (!modifierPressed || event.key.toLowerCase() !== "z") return;
+
+      event.preventDefault();
+      if (event.shiftKey) redoProject();
+      else undoProject();
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -270,6 +337,10 @@ export default function App() {
             </p>
           </div>
           <div className="workspace-view-switch">
+            <div className="history-actions" aria-label="History actions">
+              <button type="button" title={t("undoHint")} disabled={!canUndo} onClick={undoProject}>{t("undo")}</button>
+              <button type="button" title={t("redoHint")} disabled={!canRedo} onClick={redoProject}>{t("redo")}</button>
+            </div>
             <div className="segmented view-segmented" aria-label="Preview mode">
               <button className={view === "three" ? "active" : ""} onClick={() => setView("three")}>{t("threePreview")}</button>
               <button className={view === "leaflet" ? "active" : ""} onClick={() => setView("leaflet")}>{t("flatPreview")}</button>

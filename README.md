@@ -168,6 +168,14 @@ npm install
 ## Changelog
 
 
+### v0.1.15
+
+- Added Undo / Redo history for wall and project edits.
+- Added header buttons for returning to the previous or next edit state.
+- Added keyboard shortcuts: Cmd/Ctrl+Z for undo and Cmd/Ctrl+Shift+Z for redo.
+
+
+
 ### v0.1.14
 
 - Fixed the preset/apply-mode control in the left panel.

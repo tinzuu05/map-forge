@@ -1951,3 +1951,56 @@ select {
   text-orientation: mixed !important;
 }
 
+
+/* v0.1.15 undo / redo history controls */
+.workspace-view-switch {
+  display: flex !important;
+  align-items: start;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.history-actions {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(92px, auto));
+  gap: 8px;
+  align-items: center;
+}
+
+.history-actions button {
+  min-height: 38px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.history-actions button:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+@media (max-width: 980px) {
+  .workspace-view-switch {
+    justify-content: stretch;
+  }
+
+  .history-actions,
+  .view-segmented {
+    width: 100% !important;
+  }
+
+  .history-actions {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .history-actions {
+    grid-template-columns: 1fr;
+  }
+}
+

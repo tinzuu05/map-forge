@@ -131,6 +131,10 @@ export const labels = {
     noFileSelected: "未選擇任何檔案",
     uploadAnother: "重新選擇",
     pointType: "類型",
+    undo: "回到上一步",
+    redo: "回到下一步",
+    undoHint: "復原上一個圖牆 / 專案修改",
+    redoHint: "重做下一個圖牆 / 專案修改",
   },
   en: {
     projectName: "Project name",
@@ -262,6 +266,10 @@ export const labels = {
     noFileSelected: "No file selected",
     uploadAnother: "Choose another",
     pointType: "Type",
+    undo: "Undo",
+    redo: "Redo",
+    undoHint: "Undo the previous wall / project edit",
+    redoHint: "Redo the next wall / project edit",
   },
 } as const;
 
