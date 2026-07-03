@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 import type { ExportFormat, MapProject } from "../types";
 import { downloadTextFile } from "../utils/download";
 import { generateProjectJson, generateThreeJsCode, generateThreeTsCode } from "../exporters/generateThreeCode";
@@ -12,18 +12,19 @@ function buildCode(project: MapProject, format: ExportFormat) {
 }
 
 export default function RightPanel({ project, language, setLanguage }: { project: MapProject; language: Language; setLanguage: (language: Language) => void }) {
+  const deferredExportProject = useDeferredValue(project);
   const t = makeTranslator(language);
   const [format, setFormat] = useState<ExportFormat>("ts");
   const [showFullPreview, setShowFullPreview] = useState(false);
   const [copied, setCopied] = useState(false);
-  const isLarge = project.shapes.length > 900;
+  const isLarge = deferredExportProject.shapes.length > 900;
 
   const code = useMemo(() => {
     if (isLarge && !showFullPreview) {
-      return `// ${t("largeModel")}\n// Shapes: ${project.shapes.length}\n// Use Download to export the full ${format.toUpperCase()} file.`;
+      return `// ${t("largeModel")}\n// Shapes: ${deferredExportProject.shapes.length}\n// Use Download to export the full ${format.toUpperCase()} file.`;
     }
-    return buildCode(project, format);
-  }, [project, format, isLarge, showFullPreview, t]);
+    return buildCode(deferredExportProject, format);
+  }, [deferredExportProject, format, isLarge, showFullPreview, t]);
 
   const filename = format === "json" ? "mapforge-project.json" : format === "js" ? "generatedMap.js" : "generatedMap.ts";
 
@@ -60,7 +61,7 @@ export default function RightPanel({ project, language, setLanguage }: { project
             <option value="json">{t("exportJson")}</option>
           </select>
         </label>
-        {isLarge && <p className="hint warning">{t("largeModel")} {project.shapes.length} shapes.</p>}
+        {isLarge && <p className="hint warning">{t("largeModel")} {deferredExportProject.shapes.length} shapes.</p>}
         <div className="button-row export-buttons">
           <button className="action-button" type="button" onClick={handleCopy}>{t("copyFull")}</button>
           <button className="action-button" type="button" onClick={handleDownload}>{t("download")}</button>

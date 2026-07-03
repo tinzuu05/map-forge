@@ -2004,3 +2004,22 @@ select {
   }
 }
 
+
+/* v0.1.16 render performance polish */
+.history-actions button,
+.view-segmented button,
+.selected-wall-actions button {
+  will-change: transform;
+}
+
+.preview-stage canvas,
+.leaflet-container {
+  contain: layout paint size;
+}
+
+.right-panel pre,
+.code-preview,
+.code-block {
+  contain: content;
+}
+

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { memo, useEffect, useRef } from "react";
 import L from "leaflet";
 import type { MapProject, Point2D } from "../types";
 

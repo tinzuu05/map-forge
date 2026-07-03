@@ -168,6 +168,22 @@ npm install
 ## Changelog
 
 
+### v0.1.16.1
+
+- Fixed `RightPanel` crash caused by missing `deferredExportProject` declaration.
+- Restored `npm run dev` blank-screen issue from v0.1.16.
+
+
+
+### v0.1.16
+
+- Improved editing performance by deferring heavy preview/export updates on large projects.
+- Reduced unnecessary history entries for no-op project updates.
+- Memoized preview components to reduce redundant React work.
+- Added rendering containment CSS for preview and code panels.
+
+
+
 ### v0.1.15
 
 - Added Undo / Redo history for wall and project edits.

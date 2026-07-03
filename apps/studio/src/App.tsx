@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { demoProject } from "./data/demoProject";
 import type { MapProject } from "./types";
 import LeftPanel from "./components/LeftPanel";
@@ -21,12 +21,20 @@ export default function App() {
     future: [],
   }));
   const project = projectHistory.present;
+  const deferredProject = useDeferredValue(project);
   const canUndo = projectHistory.past.length > 0;
   const canRedo = projectHistory.future.length > 0;
+  const isLargeProject = project.shapes.length > 1200;
+  const previewProject = isLargeProject ? deferredProject : project;
   const [view, setView] = useState<"three" | "leaflet">("three");
   const [selectedShapeIds, setSelectedShapeIds] = useState<string[]>([]);
   const [language, setLanguage] = useState<Language>(() => (localStorage.getItem("mapforge-language") as Language) || "zh-TW");
   const t = makeTranslator(language);
+
+  const selectedShapes = useMemo(
+    () => project.shapes.filter((shape) => selectedShapeIds.includes(shape.id)),
+    [project.shapes, selectedShapeIds]
+  );
 
   useEffect(() => {
     localStorage.setItem("mapforge-language", language);
@@ -37,6 +45,12 @@ export default function App() {
     setProjectHistory((current) => {
       const nextProject = updater(current.present);
       if (nextProject === current.present) return current;
+
+      const sameShapeRef = nextProject.shapes === current.present.shapes;
+      const samePointRef = nextProject.points === current.present.points;
+      const sameImageRef = nextProject.imageUrl === current.present.imageUrl;
+      const sameSettingsRef = nextProject.settings === current.present.settings;
+      if (sameShapeRef && samePointRef && sameImageRef && sameSettingsRef) return current;
 
       return {
         past: [...current.past, current.present].slice(-MAX_HISTORY_LENGTH),
@@ -356,9 +370,9 @@ export default function App() {
         </header>
         <div className="preview-stage">
           {view === "three" ? (
-            <ThreePreview project={project} selectedShapeIds={selectedShapeIds} onSelectedShapeIdsChange={setSelectedShapeIds} language={language} />
+            <ThreePreview project={previewProject} selectedShapeIds={selectedShapeIds} onSelectedShapeIdsChange={setSelectedShapeIds} language={language} />
           ) : (
-            <LeafletPreview project={project} selectedShapeIds={selectedShapeIds} onSelectedShapeIdsChange={setSelectedShapeIds} />
+            <LeafletPreview project={previewProject} selectedShapeIds={selectedShapeIds} onSelectedShapeIdsChange={setSelectedShapeIds} />
           )}
         </div>
       </main>
