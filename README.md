@@ -168,6 +168,37 @@ npm install
 ## Changelog
 
 
+### v0.1.14
+
+- Fixed the preset/apply-mode control in the left panel.
+- Preset selection now spans the full panel width instead of being squeezed into the two-column label/input layout.
+- Prevented long preset text from rendering vertically.
+
+
+
+### v0.1.13
+
+- Fixed checkbox rows in the left panel so they no longer use the same ratio as normal label/input rows.
+- Checkbox options now render as full-width rows with a compact checkbox and readable label text.
+
+
+
+### v0.1.12
+
+- Fixed the left panel settings layout by targeting `.grid-two`, which is the actual layout used by Auto Detection and Scene settings.
+- Restored true label-left / input-right alignment on desktop widths.
+- Kept mobile stacked fallback for narrow screens.
+
+
+
+### v0.1.11
+
+- Restored the left panel control layout to a left-label / right-input style on desktop widths.
+- Kept responsive stacked controls only for narrow mobile layouts.
+- Added overflow-safe select styling for long English option labels.
+
+
+
 ### v0.1.10
 
 - Kept the `3D Preview / Flat Preview` switch in a stable top-right header position.

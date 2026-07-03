@@ -1668,3 +1668,286 @@ select {
   }
 }
 
+
+/* v0.1.11 left panel two-column controls
+   Restore the original left-label / right-control layout for the left panel,
+   while keeping a safe stacked fallback on narrow screens. */
+.left-panel .control-row,
+.left-panel .setting-row,
+.left-panel .form-row {
+  display: grid !important;
+  grid-template-columns: minmax(112px, 0.9fr) minmax(132px, 1.1fr) !important;
+  gap: 10px 12px !important;
+  align-items: center !important;
+}
+
+.left-panel .control-row label,
+.left-panel .setting-row label,
+.left-panel .form-row label {
+  min-width: 0;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.left-panel .control-row input,
+.left-panel .control-row select,
+.left-panel .setting-row input,
+.left-panel .setting-row select,
+.left-panel .form-row input,
+.left-panel .form-row select {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Long English select values should not push the panel layout. */
+.left-panel select {
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* For extra long helper labels, allow the whole row to stack only when needed. */
+.left-panel .control-row.is-wide,
+.left-panel .setting-row.is-wide,
+.left-panel .form-row.is-wide {
+  grid-template-columns: 1fr !important;
+  align-items: stretch !important;
+}
+
+/* Narrow left panel / mobile fallback. */
+@media (max-width: 1180px) {
+  .left-panel .control-row,
+  .left-panel .setting-row,
+  .left-panel .form-row {
+    grid-template-columns: minmax(108px, 0.85fr) minmax(128px, 1.15fr) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .left-panel .control-row,
+  .left-panel .setting-row,
+  .left-panel .form-row {
+    grid-template-columns: 1fr !important;
+    align-items: stretch !important;
+  }
+}
+
+
+/* v0.1.12 left panel true label-left / input-right layout
+   The previous patch targeted .control-row, but the actual left-panel settings
+   are mostly rendered with .grid-two. This restores the original two-column
+   feeling: labels on the left, inputs/selects on the right. */
+.left-panel .grid-two {
+  display: grid !important;
+  grid-template-columns: minmax(118px, 0.85fr) minmax(142px, 1.15fr) !important;
+  gap: 9px 12px !important;
+  align-items: center !important;
+}
+
+.left-panel .grid-two > label:not(.primary-span) {
+  grid-column: auto !important;
+  margin: 0;
+  min-width: 0;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.left-panel .grid-two > input:not(.primary-span),
+.left-panel .grid-two > select:not(.primary-span),
+.left-panel .grid-two > textarea:not(.primary-span),
+.left-panel .grid-two > .number-field:not(.primary-span) {
+  grid-column: auto !important;
+  width: 100%;
+  min-width: 0;
+}
+
+.left-panel .grid-two > .primary-span {
+  grid-column: 1 / -1 !important;
+}
+
+.left-panel .grid-two > label.primary-span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+}
+
+.left-panel .grid-two > button.primary-span,
+.left-panel .grid-two > select.primary-span {
+  width: 100%;
+}
+
+/* Keep long English select text from forcing the panel wider. */
+.left-panel .grid-two select,
+.left-panel .grid-two input,
+.left-panel .grid-two textarea {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.left-panel .grid-two select {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Range inputs look better when they span the full right column but stay aligned
+   with the left label. */
+.left-panel .grid-two input[type="range"] {
+  width: 100%;
+}
+
+/* On narrow mobile widths, stack again to avoid cramped controls. */
+@media (max-width: 760px) {
+  .left-panel .grid-two {
+    grid-template-columns: 1fr !important;
+    align-items: stretch !important;
+  }
+
+  .left-panel .grid-two > label:not(.primary-span),
+  .left-panel .grid-two > input:not(.primary-span),
+  .left-panel .grid-two > select:not(.primary-span),
+  .left-panel .grid-two > textarea:not(.primary-span),
+  .left-panel .grid-two > .number-field:not(.primary-span) {
+    grid-column: 1 / -1 !important;
+  }
+}
+
+
+/* v0.1.13 checkbox layout fix
+   Checkbox rows should not use the same visual ratio as normal
+   label-left / input-right rows. They should read as one full-width option:
+   [checkbox] label text. */
+.left-panel .grid-two > label.primary-span {
+  grid-column: 1 / -1 !important;
+  display: grid !important;
+  grid-template-columns: 18px minmax(0, 1fr) !important;
+  gap: 10px !important;
+  align-items: start !important;
+  justify-content: start !important;
+  width: 100%;
+  margin: 2px 0;
+  padding: 9px 10px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.24);
+  border: 1px solid rgba(148, 163, 184, 0.10);
+  color: var(--text);
+  line-height: 1.35;
+}
+
+.left-panel .grid-two > label.primary-span input[type="checkbox"] {
+  width: 16px !important;
+  height: 16px !important;
+  min-width: 16px !important;
+  margin: 1px 0 0 !important;
+  accent-color: var(--accent);
+  justify-self: center;
+}
+
+.left-panel .grid-two > label.primary-span:hover {
+  background: rgba(34, 211, 238, 0.07);
+  border-color: rgba(34, 211, 238, 0.22);
+}
+
+.left-panel .grid-two > label.primary-span:has(input[type="checkbox"]:checked) {
+  background: rgba(34, 211, 238, 0.10);
+  border-color: rgba(34, 211, 238, 0.30);
+}
+
+.left-panel .grid-two > input[type="checkbox"]:not(.primary-span) {
+  width: 16px !important;
+  height: 16px !important;
+  min-width: 16px !important;
+  justify-self: start;
+  align-self: center;
+  accent-color: var(--accent);
+}
+
+.left-panel .grid-two > input[type="checkbox"]:not(.primary-span) + label {
+  align-self: center;
+}
+
+
+/* v0.1.14 preset select layout fix
+   "Preset / Apply mode" should not be squeezed into the regular two-column
+   label/input ratio. It is an action block: helper text/title first, select
+   below. This prevents vertical text and makes it obvious that users should
+   choose from the dropdown below. */
+
+/* Most preset controls are rendered as a full-width select/button inside
+   .grid-two. Force these action-like controls to span the full panel width. */
+.left-panel .grid-two > select.primary-span,
+.left-panel .grid-two > button.primary-span {
+  grid-column: 1 / -1 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+/* Specific preset row support, when the component provides a wrapper. */
+.left-panel .preset-select-row,
+.left-panel .mode-preset-row,
+.left-panel .preset-row {
+  grid-column: 1 / -1 !important;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 8px !important;
+  align-items: stretch !important;
+  width: 100%;
+}
+
+/* Make the preset label read like a section helper instead of a cramped
+   left-column label. */
+.left-panel .grid-two > label:has(+ select.primary-span),
+.left-panel .grid-two > label:has(+ button.primary-span),
+.left-panel .preset-select-row label,
+.left-panel .mode-preset-row label,
+.left-panel .preset-row label {
+  grid-column: 1 / -1 !important;
+  display: block !important;
+  width: 100%;
+  margin: 4px 0 0;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  white-space: normal !important;
+  word-break: normal !important;
+  overflow-wrap: anywhere;
+}
+
+/* Preset select gets a clearer visual treatment. */
+.left-panel .grid-two > select.primary-span,
+.left-panel .preset-select-row select,
+.left-panel .mode-preset-row select,
+.left-panel .preset-row select {
+  min-height: 42px;
+  padding-inline: 12px 34px;
+  border-color: rgba(34, 211, 238, 0.28);
+  background-color: rgba(2, 6, 23, 0.54);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* If the preset/action button appears after the select, keep it full-width
+   and visually separate from normal inputs. */
+.left-panel .grid-two > button.primary-span,
+.left-panel .preset-select-row button,
+.left-panel .mode-preset-row button,
+.left-panel .preset-row button {
+  min-height: 40px;
+}
+
+/* Long option text should never turn vertical. */
+.left-panel select,
+.left-panel option {
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+}
+

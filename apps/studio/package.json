@@ -1,6 +1,6 @@
 {
   "name": "@map-forge/studio",
-  "version": "0.1.10",
+  "version": "0.1.14",
   "description": "Map Forge Studio web app: convert 2D floor plans into approximate 3D wall models with Three.js export and Leaflet-compatible points.",
   "license": "MIT",
   "type": "module",
