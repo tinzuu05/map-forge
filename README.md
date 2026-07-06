@@ -168,6 +168,44 @@ npm install
 ## Changelog
 
 
+### v0.1.20.3
+
+- JavaScript and TypeScript exports are now self-contained for external projects.
+- Exported modules include `createMapForgeGroup(project)` and `createMapForgeScene(scene, project)` so users do not need to write their own `createMapFromProject.js`.
+- The exported helper functions include the correct box wall, merged polygon wall, holes, and point-marker conversion logic.
+- Merged polygon walls use `ExtrudeGeometry` with `rotateX(-Math.PI / 2)` so they match box walls: X/Z floor plane and Y height.
+
+
+
+### v0.1.20.2
+
+- Corrected the simplified export logic after validating the external target uses the common Three.js convention: X/Z floor plane and Y height.
+- JavaScript and TypeScript exports now keep both box walls and merged polygon/extrude walls in X/Z floor coordinates.
+- Merged polygon walls again rotate `ExtrudeGeometry` into Y-up space, preventing the merged wall from using Z as height starting at `z = 0`.
+- JSON export remains a pure project data export.
+
+
+
+### v0.1.20.1
+
+- Simplified export behavior: no Y-up/Z-up option is shown in the UI.
+- Right-panel JavaScript and TypeScript exports now always use external-project Z-up coordinates.
+- Right-panel JSON export remains a plain project data export.
+- Box walls and merged polygon walls now share the same exported coordinate convention: X/Y floor plane and +Z height.
+- Merged polygon exports keep `holes` when present.
+
+
+
+### v0.1.20
+
+- Added export axis mode for Three.js code: `Y-up` and `Z-up`.
+- Fixed external `generatedMap.js` usage where merged polygon walls could appear to extend toward negative Z in Z-up projects.
+- Kept Map Forge's default export as Y-up for backwards compatibility.
+- Z-up export now makes both box walls and merged `ExtrudeGeometry` walls use X/Y as the floor plane and +Z as height.
+- Exported polygon walls now include `holes` when present.
+
+
+
 ### v0.1.19
 
 - Added selected-wall geometry editing for X/Y position, width/depth, height, fill color, border color, and opacity.
